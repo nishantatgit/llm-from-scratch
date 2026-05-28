@@ -52,6 +52,7 @@ pip install -r requirements.txt
 - *Attention Is All You Need* (Vaswani et al., 2017)
 - Andrej Karpathy's "Let's build GPT" series
 - Sebastian Raschka's *Build a Large Language Model (From Scratch)*
+- *A Deep Understanding of AI Large Language Model Mechanisms* — Mike X Cohen ([Udemy](https://www.udemy.com/course/dullms_x/) · [companion code](https://github.com/mikexcohen/LLM_course))
 
 ## License
 
