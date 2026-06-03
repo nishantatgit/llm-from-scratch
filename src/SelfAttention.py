@@ -2,9 +2,10 @@ import torch
 
 class SelfAttention(torch.nn.Module):
     def __init__(self, in_dimension, out_dimension, qkv_bias=False):
-        self.W_Query = torch.nn.linear(in_dimension, out_dimension, bias=qkv_bias)
-        self.W_Key = torch.nn.linear(in_dimension, out_dimension, bias=qkv_bias)
-        self.W_Value = torch.nn.linear(in_dimension, out_dimension, bias=qkv_bias)
+        super().__init__()
+        self.W_Query = torch.nn.Linear(in_dimension, out_dimension, bias=qkv_bias)
+        self.W_Key = torch.nn.Linear(in_dimension, out_dimension, bias=qkv_bias)
+        self.W_Value = torch.nn.Linear(in_dimension, out_dimension, bias=qkv_bias)
 
     def forward(self,X):
         queries = self.W_Query(X)
