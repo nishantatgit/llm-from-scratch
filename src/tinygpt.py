@@ -1,7 +1,9 @@
 import torch
 import torch.nn as nn
-
-class DummyGPTModel(nn.Module):
+import sys
+sys.path.append("..")
+from .multiheadattention import  MultiheadAttention 
+class GPTModel(nn.Module):
     def __init__(self, cfg):
 
         super().__init__()
@@ -15,7 +17,7 @@ class DummyGPTModel(nn.Module):
         self.drop_embd = nn.Dropout(cfg["drop_rate"])
 
         self.trf_blocks = nn.Sequential(
-            *[DummyTransformerBlock(cfg) for _ in range(cfg["no_of_layers"])]
+            *[TransformerBlock(cfg) for _ in range(cfg["no_of_layers"])]
         )
 
         self.final_norms = LayerNorm(cfg["emb_dim"])
@@ -40,15 +42,36 @@ class DummyGPTModel(nn.Module):
 
         return logits
 
-
-
-
-class DummyTransformerBlock(nn.Module):
+class TransformerBlock(nn.Module):
     def __init__(self,cfg):
         super().__init__()
+        self.att = MultiheadAttention(
+            d_in = cfg["emb_dim"],
+            d_out = cfg["emb_dim"],
+            context_size = cfg["context_length"],
+            dropout_rate=cfg["drop_rate"],
+            num_heads = cfg["n_heads"],
+            qkv_bias=cfg["qkv_bias"]
+        )
 
-    def forward(self,x):
-        return x
+        self.ff = FeedForward(cfg)
+        self.norm1 = LayerNorm(cfg["emb_dim"])
+        self.norm2 = LayerNorm(cfg["emb_dim"])
+        self.drop_shortcut = nn.Dropout(cfg["drop_rate"])
+
+    def forward(self,X):
+        shortcut = X
+        X = self.norm1(X)
+        X = self.att(X)
+        X = self.drop_shortcut(X)
+        X = X + shortcut
+
+        shortcut = X
+        X = self.norm2(X)
+        X = self.ff(X)
+        X = self.drop_shortcut(X)
+        X = X + shortcut
+        return X
     
 class LayerNorm(nn.Module):
     def __init__(self, emb_dim, eps=1e-5):
@@ -59,11 +82,11 @@ class LayerNorm(nn.Module):
 
     def forward(self,x):
         mean = x.mean(dim = - 1, keepdim = True)
-        var = x.var(dim = -1, keepdm = True, unbiased=False)
+        var = x.var(dim = -1, keepdim = True, unbiased=False)
         norm_x = (x - mean) / torch.sqrt(var + self.eps)
         return self.scale * norm_x + self.shift
 
-class GELU():
+class GELU(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -82,7 +105,7 @@ class FeedForward(nn.Module):
             nn.Linear(4 * cfg["emb_dim"],cfg["emb_dim"])
         )
 
-    def foward(self,X):
+    def forward(self,X):
         return self.layers(X)
     
 
