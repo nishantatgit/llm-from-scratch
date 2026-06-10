@@ -60,4 +60,14 @@ class MultiheadAttention(nn.Module):
         return context_vectors
         
 
-
+def simple_text_gen(model, idx, max_new_tokens, context_size):
+    for _ in range(max_new_tokens):
+        idx_cond = idx[:, -context_size:]
+        with torch.no_grad():
+            logits = model(idx_cond) # model returns tensor of size [batch_size, context_size(no_of_tokens in a sequence), vocab_size]
+        
+        logits = logits[:,-1,:]
+        probas = torch.softmax(logits, dim=-1)
+        idx_next = torch.argmax(probas,dim = -1, keepdim=True)
+        idx = torch.cat((idx,idx_next), dim=1)
+    return idx
